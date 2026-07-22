@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Weather App</title>
+    <link rel="stylesheet" href="weatherStyle.css">
+</head>
+
+<body>
+
+    <section id="weather" class="weather-app-section">
+
+  <h2 class="section-title">
+    Weather App
+  </h2>
+
+  <div class="weather-container">
+
+    <h3>
+      Check the Weather
+    </h3>
+
+    <div class="search-box">
+
+      <input
+        id="cityInput"
+        type="text"
+        placeholder="Enter city name"
+      >
+
+      <button id="weatherSearchBtn">
+        Search
+      </button>
+
+    </div>
+
+    <!-- CURRENT LOCATION BUTTON -->
+
+<button id="currentLocationBtn" class="location-btn">
+  📍 Use My Current Location
+</button>
+
+    <p id="weatherLoading"></p>
+
+    <p id="weatherError"></p>
+
+    <div class="weather-card">
+
+      <h2 id="city">
+        City
+      </h2>
+
+      <img
+        id="weatherIcon"
+        src=""
+        alt="Weather icon"
+      >
+
+      <h3 id="temperature">
+        --°F
+      </h3>
+
+      <p id="condition">
+        Condition
+      </p>
+
+      <div class="details">
+
+        <p>
+          Humidity:
+          <span id="humidity">
+            --%
+          </span>
+        </p>
+
+        <p>
+          Wind:
+          <span id="wind">
+            -- mph
+          </span>
+        </p>
+
+      </div>
+
+    </div>
+
+  </div>
+
+</section>
+
+
+<script src="weatherScript.js"></script>
+
+</body>
+</html>
