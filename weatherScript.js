@@ -13,353 +13,558 @@ const errorDisplay = document.getElementById("weatherError");
 const loadingDisplay = document.getElementById("weatherLoading");
 
 
+
 /* ===== SEARCH WEATHER BY CITY ===== */
 
 async function getWeather() {
 
-  const city = cityInput.value.trim();
+    const city = cityInput.value.trim();
 
-  // Check if user entered a city
-  if (!city) {
-    errorDisplay.textContent = "Please enter a city";
-    return;
-  }
 
-  errorDisplay.textContent = "";
-  loadingDisplay.textContent = "Loading...";
+    if (!city) {
 
-  try {
+        errorDisplay.textContent = "Please enter a city";
 
-    // Get latitude and longitude from city name
-    const locRes = await fetch(
-      `https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(city)}&count=1&language=en&format=json`
-    );
+        return;
 
-    const locData = await locRes.json();
-
-    // Check if city exists
-    if (!locData.results || locData.results.length === 0) {
-      throw new Error("City not found");
     }
 
-    const {
-      latitude,
-      longitude,
-      name,
-      country
-    } = locData.results[0];
+
+    errorDisplay.textContent = "";
+
+    loadingDisplay.textContent = "Loading...";
 
 
-    // Get weather using coordinates
-    await getWeatherByCoordinates(
-      latitude,
-      longitude,
-      `${name}, ${country}`
-    );
-
-  } catch (error) {
-
-    errorDisplay.textContent = error.message;
-
-  } finally {
-
-    loadingDisplay.textContent = "";
-
-  }
-
-}
+    try {
 
 
-/* ===== GET WEATHER BY CURRENT LOCATION ===== */
-
-function getCurrentLocation() {
-
-  // Check if browser supports location
-  if (!navigator.geolocation) {
-
-    errorDisplay.textContent =
-      "Geolocation is not supported by your browser.";
-
-    return;
-
-  }
-
-  errorDisplay.textContent = "";
-  loadingDisplay.textContent =
-    "Finding your current location...";
-
-
-  // Ask user for their location
-  navigator.geolocation.getCurrentPosition(
-
-    async function(position) {
-
-      const latitude = position.coords.latitude;
-      const longitude = position.coords.longitude;
-
-      try {
-
-        // Get weather using current coordinates
-        await getWeatherByCoordinates(
-          latitude,
-          longitude,
-          "Your Current Location"
+        const locRes = await fetch(
+            `https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(city)}&count=1&language=en&format=json`
         );
 
-      } catch (error) {
 
-        errorDisplay.textContent =
-          "Unable to get weather for your location.";
+        const locData = await locRes.json();
 
-      } finally {
+
+
+        if (!locData.results || locData.results.length === 0) {
+
+            throw new Error("City not found");
+
+        }
+
+
+
+        const {
+
+            latitude,
+            longitude,
+            name,
+            country
+
+        } = locData.results[0];
+
+
+
+        await getWeatherByCoordinates(
+
+            latitude,
+            longitude,
+            `${name}, ${country}`
+
+        );
+
+
+
+    } catch(error) {
+
+
+        errorDisplay.textContent = error.message;
+
+
+    } finally {
+
 
         loadingDisplay.textContent = "";
 
-      }
-
-    },
-
-    function(error) {
-
-      loadingDisplay.textContent = "";
-
-      if (error.code === 1) {
-
-        errorDisplay.textContent =
-          "Location permission was denied. Please allow location access.";
-
-      } else if (error.code === 2) {
-
-        errorDisplay.textContent =
-          "Your location could not be found.";
-
-      } else if (error.code === 3) {
-
-        errorDisplay.textContent =
-          "Location request timed out.";
-
-      } else {
-
-        errorDisplay.textContent =
-          "Unable to get your current location.";
-
-      }
 
     }
-
-  );
 
 }
 
 
-/* ===== GET WEATHER USING COORDINATES ===== */
+
+
+/* ===== CURRENT LOCATION WEATHER ===== */
+
+
+function getCurrentLocation() {
+
+
+    if (!navigator.geolocation) {
+
+
+        errorDisplay.textContent =
+        "Geolocation is not supported by your browser.";
+
+
+        return;
+
+    }
+
+
+
+    errorDisplay.textContent = "";
+
+    loadingDisplay.textContent =
+    "Finding your location...";
+
+
+
+
+    navigator.geolocation.getCurrentPosition(
+
+
+
+        async function(position) {
+
+
+
+            const latitude = position.coords.latitude;
+
+            const longitude = position.coords.longitude;
+
+
+
+            try {
+
+
+
+                await getWeatherByCoordinates(
+
+                    latitude,
+
+                    longitude,
+
+                    "Your Current Location"
+
+                );
+
+
+
+            } catch(error) {
+
+
+
+                errorDisplay.textContent =
+                "Unable to get weather.";
+
+
+
+            } finally {
+
+
+                loadingDisplay.textContent = "";
+
+
+            }
+
+
+
+        },
+
+
+
+        function(error) {
+
+
+
+            loadingDisplay.textContent = "";
+
+
+
+            if(error.code === 1) {
+
+
+                errorDisplay.textContent =
+                "Location permission denied.";
+
+
+            }
+
+
+            else if(error.code === 2) {
+
+
+                errorDisplay.textContent =
+                "Location unavailable.";
+
+
+            }
+
+
+            else if(error.code === 3) {
+
+
+                errorDisplay.textContent =
+                "Location timed out.";
+
+
+            }
+
+
+            else {
+
+
+                errorDisplay.textContent =
+                "Unable to get location.";
+
+
+            }
+
+
+        }
+
+
+    );
+
+
+}
+
+
+
+
+
+/* ===== WEATHER USING COORDINATES ===== */
+
 
 async function getWeatherByCoordinates(
-  latitude,
-  longitude,
-  locationName
+    latitude,
+    longitude,
+    locationName
 ) {
 
-  // Get current weather
-  const weatherRes = await fetch(
-    `https://api.open-meteo.com/v1/forecast?latitude=${latitude}&longitude=${longitude}&current_weather=true&hourly=relative_humidity_2m&temperature_unit=fahrenheit&windspeed_unit=mph`
-  );
-
-  const weatherData = await weatherRes.json();
-
-  if (!weatherData.current_weather) {
-    throw new Error("Weather information is unavailable.");
-  }
-
-  const weather = weatherData.current_weather;
 
 
-  // Update city name
-  cityDisplay.textContent = locationName;
+    const weatherRes = await fetch(
+
+        `https://api.open-meteo.com/v1/forecast?latitude=${latitude}&longitude=${longitude}&current_weather=true&hourly=relative_humidity_2m&temperature_unit=fahrenheit&windspeed_unit=mph`
+
+    );
 
 
-  // Update temperature
-  tempDisplay.textContent =
+
+    const weatherData = await weatherRes.json();
+
+
+
+    if(!weatherData.current_weather) {
+
+
+        throw new Error(
+            "Weather unavailable"
+        );
+
+
+    }
+
+
+
+    const weather = weatherData.current_weather;
+
+
+
+    cityDisplay.textContent = locationName;
+
+
+
+    tempDisplay.textContent =
     `${Math.round(weather.temperature)}°F`;
 
 
-  // Update wind speed
-  windDisplay.textContent =
+
+    windDisplay.textContent =
     `${Math.round(weather.windspeed)} mph`;
 
 
-  // Update weather condition
-  conditionDisplay.textContent =
+
+    conditionDisplay.textContent =
     getCondition(weather.weathercode);
 
 
-  // Update weather icon
-  iconDisplay.src =
+
+
+
+    /* ===== WEATHER ICON FIX ===== */
+
+
+    iconDisplay.style.display = "none";
+
+
+    iconDisplay.src =
     getIcon(weather.weathercode);
 
-  iconDisplay.alt =
+
+
+    iconDisplay.alt =
     getCondition(weather.weathercode);
 
 
-  // Find humidity for current hour
-  if (
-    weatherData.hourly &&
-    weatherData.hourly.time &&
-    weatherData.hourly.relative_humidity_2m
-  ) {
 
-    const hourIdx =
-      weatherData.hourly.time.indexOf(weather.time);
+    iconDisplay.onload = function(){
 
-    if (hourIdx !== -1) {
+        iconDisplay.style.display = "block";
 
-      humidityDisplay.textContent =
-        `${weatherData.hourly.relative_humidity_2m[hourIdx]}%`;
+    };
 
-    } else {
 
-      humidityDisplay.textContent = "N/A";
+
+
+
+    /* ===== HUMIDITY ===== */
+
+
+    if(
+        weatherData.hourly &&
+        weatherData.hourly.time &&
+        weatherData.hourly.relative_humidity_2m
+    ) {
+
+
+
+        const hourIndex =
+        weatherData.hourly.time.indexOf(weather.time);
+
+
+
+        if(hourIndex !== -1) {
+
+
+
+            humidityDisplay.textContent =
+            `${weatherData.hourly.relative_humidity_2m[hourIndex]}%`;
+
+
+
+        }
+
+        else {
+
+
+            humidityDisplay.textContent =
+            "N/A";
+
+
+        }
+
 
     }
 
-  } else {
-
-    humidityDisplay.textContent = "N/A";
-
-  }
-
-}
+    else {
 
 
-/* ===== WEATHER CONDITIONS ===== */
+        humidityDisplay.textContent =
+        "N/A";
 
-function getCondition(code) {
 
-  const conditions = {
+    }
 
-    0: "Clear Sky",
 
-    1: "Mainly Clear",
-
-    2: "Partly Cloudy",
-
-    3: "Cloudy",
-
-    45: "Foggy",
-
-    48: "Foggy",
-
-    51: "Light Drizzle",
-
-    53: "Drizzle",
-
-    55: "Heavy Drizzle",
-
-    61: "Light Rain",
-
-    63: "Rain",
-
-    65: "Heavy Rain",
-
-    71: "Light Snow",
-
-    73: "Snow",
-
-    75: "Heavy Snow",
-
-    80: "Rain Showers",
-
-    81: "Heavy Rain Showers",
-
-    82: "Heavy Rain Showers",
-
-    95: "Thunderstorm",
-
-    96: "Thunderstorm with Hail",
-
-    99: "Thunderstorm with Heavy Hail"
-
-  };
-
-  return conditions[code] || "Unknown";
 
 }
 
 
-/* ===== WEATHER ICONS ===== */
 
-function getIcon(code) {
 
-  // Clear sky
-  if (code === 0) {
-    return "https://cdn-icons-png.flaticon.com/512/869/869869.png";
-  }
 
-  // Partly cloudy
-  if (code === 1 || code === 2) {
-    return "https://cdn-icons-png.flaticon.com/512/1163/1163661.png";
-  }
 
-  // Cloudy
-  if (code === 3) {
-    return "https://cdn-icons-png.flaticon.com/512/414/414825.png";
-  }
+/* ===== CONDITIONS ===== */
 
-  // Fog
-  if (code === 45 || code === 48) {
-    return "https://cdn-icons-png.flaticon.com/512/4005/4005901.png";
-  }
 
-  // Rain
-  if (code >= 51 && code <= 67) {
-    return "https://cdn-icons-png.flaticon.com/512/1163/1163624.png";
-  }
+function getCondition(code){
 
-  // Snow
-  if (code >= 71 && code <= 77) {
-    return "https://cdn-icons-png.flaticon.com/512/642/642102.png";
-  }
 
-  // Rain showers
-  if (code >= 80 && code <= 82) {
-    return "https://cdn-icons-png.flaticon.com/512/1163/1163627.png";
-  }
+const conditions = {
 
-  // Thunderstorm
-  if (code >= 95) {
-    return "https://cdn-icons-png.flaticon.com/512/1146/1146860.png";
-  }
 
-  // Default icon
-  return "https://cdn-icons-png.flaticon.com/512/869/869869.png";
+0:"Clear Sky",
+
+1:"Mainly Clear",
+
+2:"Partly Cloudy",
+
+3:"Cloudy",
+
+45:"Foggy",
+
+48:"Foggy",
+
+51:"Light Drizzle",
+
+53:"Drizzle",
+
+55:"Heavy Drizzle",
+
+61:"Light Rain",
+
+63:"Rain",
+
+65:"Heavy Rain",
+
+71:"Light Snow",
+
+73:"Snow",
+
+75:"Heavy Snow",
+
+80:"Rain Showers",
+
+81:"Heavy Rain Showers",
+
+82:"Heavy Rain Showers",
+
+95:"Thunderstorm",
+
+96:"Thunderstorm With Hail",
+
+99:"Thunderstorm With Heavy Hail"
+
+
+};
+
+
+
+return conditions[code] || "Unknown";
+
 
 }
 
 
-/* ===== BUTTON EVENTS ===== */
 
-// Search button
+
+
+
+
+/* ===== ICONS ===== */
+
+
+function getIcon(code){
+
+
+
+if(code === 0){
+
+return "https://cdn-icons-png.flaticon.com/512/869/869869.png";
+
+}
+
+
+
+if(code === 1 || code === 2){
+
+return "https://cdn-icons-png.flaticon.com/512/1163/1163661.png";
+
+}
+
+
+
+if(code === 3){
+
+return "https://cdn-icons-png.flaticon.com/512/414/414825.png";
+
+}
+
+
+
+if(code === 45 || code === 48){
+
+return "https://cdn-icons-png.flaticon.com/512/4005/4005901.png";
+
+}
+
+
+
+if(code >= 51 && code <= 67){
+
+return "https://cdn-icons-png.flaticon.com/512/1163/1163624.png";
+
+}
+
+
+
+if(code >= 71 && code <= 77){
+
+return "https://cdn-icons-png.flaticon.com/512/642/642102.png";
+
+}
+
+
+
+if(code >= 80 && code <= 82){
+
+return "https://cdn-icons-png.flaticon.com/512/1163/1163627.png";
+
+}
+
+
+
+if(code >= 95){
+
+return "https://cdn-icons-png.flaticon.com/512/1146/1146860.png";
+
+}
+
+
+
+return "https://cdn-icons-png.flaticon.com/512/869/869869.png";
+
+
+}
+
+
+
+
+
+
+/* ===== BUTTONS ===== */
+
+
 weatherSearchBtn.addEventListener(
-  "click",
-  getWeather
+
+"click",
+
+getWeather
+
 );
 
 
-// Press Enter to search
+
 cityInput.addEventListener(
-  "keyup",
-  (event) => {
 
-    if (event.key === "Enter") {
-      getWeather();
-    }
+"keyup",
 
-  }
+(event)=>{
+
+
+if(event.key === "Enter"){
+
+
+getWeather();
+
+
+}
+
+
+}
+
 );
 
 
-// Current location button
+
 currentLocationBtn.addEventListener(
-  "click",
-  getCurrentLocation
+
+"click",
+
+getCurrentLocation
+
 );
